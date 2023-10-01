@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,5 +6,13 @@
 @layer utilities {
   .clickable {
     @apply hover:cursor-pointer hover:scale-105 transition-all ease-in-out;
+  }
+
+  .page {
+    @apply w-64;
+  }
+
+  .wide-page {
+    @apply w-full;
   }
 }
