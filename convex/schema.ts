@@ -10,6 +10,7 @@ export default defineSchema({
       text: v.string(),
       answer: v.number(),
     }),
+    seen_questions: v.array(v.id("Question")),
     answers: v.array(
       v.object({
         author: v.string(),
@@ -30,5 +31,9 @@ export default defineSchema({
         score: v.float64(),
       })
     ),
+  }),
+  Question: defineTable({
+    text: v.string(),
+    answer: v.number(),
   }),
 });

@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { Failable, Room } from "../types";
 import { MIN_PLAYER_COUNT } from "../consts";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 const ADJECTIVES = ["sneaky", "tasty", "heavy", "funny"];
 const NOUNS = ["hippo", "bear", "ant", "shark"];
@@ -56,6 +57,7 @@ export const createRoom = mutation({
         text: "",
         answer: 0,
       },
+      seen_questions: [],
       answers: [],
       bets: [],
       done: [],
@@ -106,6 +108,35 @@ export const joinRoom = mutation({
   },
 });
 
+export const getNewQuestion = query({
+  args: {
+    roomName: v.string(),
+  },
+  handler: async (ctx, { roomName }) => {
+    const room = await ctx.db
+      .query("Room")
+      .filter((q) => q.eq(q.field("name"), roomName))
+      .first();
+    if (room == null) {
+      return failable("error", "Room does not exist");
+    }
+    const new_ids = (await ctx.db.query("Question").collect())
+      .map((q) => q._id)
+      .filter((q) => !room.seen_questions.includes(q));
+    if (new_ids.length <= 0) {
+      return failable("error", "No more questions");
+    }
+    // Pick a random question
+    const question = await ctx.db.get(
+      new_ids[Math.floor(Math.random() * new_ids.length)]
+    );
+    if (question == null) {
+      return failable("error", "Question does not exist");
+    }
+    return question;
+  },
+});
+
 export const startGame = mutation({
   args: {
     roomName: v.string(),
@@ -126,13 +157,18 @@ export const startGame = mutation({
       score: 0,
     }));
     // TODO: Dynamic questions
-    const question = {
-      text: "How many distinct medals are handed out at the Olympic games?",
-      answer: 306,
+    const question = (await getNewQuestion(ctx, { roomName })) as {
+      _id: Id<"Question">;
+      text: string;
+      answer: number;
     };
     await ctx.db.patch(room._id, {
       state: "answering",
-      question,
+      question: {
+        text: question.text,
+        answer: question.answer,
+      },
+      seen_questions: [question._id],
       answers: [],
       bets: [],
       scoreboard,
@@ -147,10 +183,10 @@ export const tryStateChange = mutation({
     fromState: v.string(),
     toState: v.string(),
   },
-  handler: async (ctx, { fromState, toState }) => {
+  handler: async (ctx, { roomName, fromState, toState }) => {
     const room = await ctx.db
       .query("Room")
-      .filter((q) => q.eq(q.field("state"), fromState))
+      .filter((q) => q.eq(q.field("name"), roomName))
       .first();
     if (room == null) {
       return failable("error", "Room does not exist");
@@ -208,7 +244,21 @@ export const tryStateChange = mutation({
     }
     if (fromState === "results" && toState === "answering") {
       // Reset answers and bets and done
-      await ctx.db.patch(room._id, { answers: [], bets: [], done: [] });
+      const question = (await getNewQuestion(ctx, { roomName })) as {
+        _id: Id<"Question">;
+        text: string;
+        answer: number;
+      };
+      await ctx.db.patch(room._id, {
+        question: {
+          text: question.text,
+          answer: question.answer,
+        },
+        seen_questions: [...room.seen_questions, question._id],
+        answers: [],
+        bets: [],
+        done: [],
+      });
     }
     return failable("ok");
   },
