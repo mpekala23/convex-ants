@@ -39,7 +39,7 @@ export default function JoinPage() {
   return (
     <div className="page">
       <p className="text-xl mb-2">Joining {localState.roomName}!</p>
-      <p>Username:</p>
+      <p>Username: </p>
       <OddInput
         className="w-full"
         value={scratchUsername}
