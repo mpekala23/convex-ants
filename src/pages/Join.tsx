@@ -1,4 +1,4 @@
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import toast from "react-hot-toast";
 import useLocalState from "../hooks/useLocalState";
@@ -20,6 +20,7 @@ function getUsernameFeedbackString(username: string): string | null {
 export default function JoinPage() {
   const joinRoom = useMutation(api.room.joinRoom);
   const { localState, setUsername } = useLocalState();
+  const room = useQuery(api.room.getRoom, { roomName: localState.roomName });
   const navigate = useNavigate();
   const [scratchUsername, setScratchUsername] = useState("");
 
@@ -54,22 +55,40 @@ export default function JoinPage() {
             return;
           }
           setUsername(scratchUsername);
-          const res = await joinRoom({
-            username: scratchUsername,
-            roomName: localState.roomName,
-          });
-          if (!res) {
-            toast.error("ERROR! CONVEX...");
-            return;
+          if (
+            room &&
+            room.players.includes(scratchUsername) &&
+            room.state !== "lobby"
+          ) {
+            // Rejoining an already started game
+            navigate("/game");
+          } else {
+            // Joining a new game
+            const res = await joinRoom({
+              username: scratchUsername,
+              roomName: localState.roomName,
+            });
+            if (!res) {
+              toast.error("ERROR! CONVEX...");
+              return;
+            }
+            if (res.status === "error") {
+              toast.error(res.message || "Unknown error!");
+              return;
+            }
+            navigate("/lobby");
           }
-          if (res.status === "error") {
-            toast.error(res.message || "Unknown error!");
-            return;
-          }
-          navigate("/lobby");
         }}
       >
         Join!
+      </OddButton>
+      <OddButton
+        className="mt-4"
+        onClick={() => {
+          navigate("/view");
+        }}
+      >
+        (Just watch)
       </OddButton>
     </div>
   );

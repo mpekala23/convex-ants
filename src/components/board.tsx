@@ -10,9 +10,10 @@ import { BetGroup } from "../../types";
 interface Props {
   editable: boolean;
   showAnswer: boolean;
+  viewing?: boolean;
 }
 
-export default function Board({ editable, showAnswer }: Props) {
+export default function Board({ editable, showAnswer, viewing }: Props) {
   const { localState } = useLocalState();
   const room = useQuery(api.room.getRoom, {
     roomName: localState.roomName,
@@ -67,7 +68,7 @@ export default function Board({ editable, showAnswer }: Props) {
   }, [room, setBetGroups]);
 
   const toggleBet = async (betGroup: BetGroup) => {
-    if (!editable) return;
+    if (!editable || viewing) return;
     if (
       betGroup.betters[localState.username] !== null &&
       betGroup.betters[localState.username] !== undefined
@@ -104,7 +105,7 @@ export default function Board({ editable, showAnswer }: Props) {
   };
 
   const tweakBet = async (betGroup: BetGroup, type: "up" | "down") => {
-    if (!editable) return;
+    if (!editable || viewing) return;
     const res =
       type == "up"
         ? await increaseBet({
@@ -143,7 +144,7 @@ export default function Board({ editable, showAnswer }: Props) {
             <div className="flex flex-col mx-8 items-center w-64">
               <div
                 className={`flex flex-col justify-center items-center py-8 mb-8  w-full h-64  text-slate-950 ${
-                  editable ? "clickable" : ""
+                  editable && !viewing ? "clickable" : ""
                 } ${bgColor}`}
                 onClick={() => {
                   toggleBet(group);
@@ -165,47 +166,49 @@ export default function Board({ editable, showAnswer }: Props) {
                 </p>
               </div>
               <div className="w-full">
-                <div className="flex items-center mb-8">
-                  <div
-                    className={`w-16 h-16 mr-4 border-slate-100 border-8 border-dashed rounded-full ${
-                      iHaveBet ? bgColor : ""
-                    }`}
-                  />
-                  <p className="text-2xl">
-                    {iHaveBet && (
-                      <div className="flex">
-                        <OddButton
-                          className="w-12 h-12 flex justify-center items-center"
-                          disabled={myBet <= 0 || !editable}
-                          onClick={() => {
-                            tweakBet(group, "down");
-                          }}
-                        >
-                          -
-                        </OddButton>
-                        <div className="mx-2">
-                          <p className="text-center">{myBet}</p>
-                          <p className="text-sm italic opacity-75 text-center">
-                            Ante
-                          </p>
+                {!viewing && (
+                  <div className="flex items-center mb-8">
+                    <div
+                      className={`w-16 h-16 mr-4 border-slate-100 border-8 border-dashed rounded-full ${
+                        iHaveBet ? bgColor : ""
+                      }`}
+                    />
+                    <p className="text-2xl">
+                      {iHaveBet && (
+                        <div className="flex">
+                          <OddButton
+                            className="w-12 h-12 flex justify-center items-center"
+                            disabled={myBet <= 0 || !editable}
+                            onClick={() => {
+                              tweakBet(group, "down");
+                            }}
+                          >
+                            -
+                          </OddButton>
+                          <div className="mx-2">
+                            <p className="text-center">{myBet}</p>
+                            <p className="text-sm italic opacity-75 text-center">
+                              Ante
+                            </p>
+                          </div>
+                          <OddButton
+                            className="w-12 h-12 flex justify-center items-center"
+                            onClick={() => {
+                              tweakBet(group, "up");
+                            }}
+                            disabled={!editable}
+                          >
+                            +
+                          </OddButton>
                         </div>
-                        <OddButton
-                          className="w-12 h-12 flex justify-center items-center"
-                          onClick={() => {
-                            tweakBet(group, "up");
-                          }}
-                          disabled={!editable}
-                        >
-                          +
-                        </OddButton>
-                      </div>
-                    )}
-                    {!iHaveBet && "No bet"}
-                  </p>
-                </div>
+                      )}
+                      {!iHaveBet && "No bet"}
+                    </p>
+                  </div>
+                )}
                 <div className="w-full">
                   {canonicalPlayers.map((player) => {
-                    if (player == localState.username) return null;
+                    if (!viewing && player == localState.username) return null;
                     const theirBet = group.betters[player];
                     const theyHaveBet =
                       group.betters[player] !== null &&

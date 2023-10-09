@@ -6,7 +6,11 @@ import { Room } from "../../../types";
 import OddButton from "../../components/button";
 import { OddGuess } from "../../components/input";
 
-export default function Answering() {
+interface Props {
+  viewing?: boolean;
+}
+
+export default function Answering({ viewing }: Props) {
   const { localState } = useLocalState();
   const room = useQuery(api.room.getRoom, {
     roomName: localState.roomName,
@@ -75,7 +79,7 @@ export default function Answering() {
       <p className="text-center font-bold text-3xl mb-8">
         {room.question.text}
       </p>
-      {dynamicPart()}
+      {!viewing && dynamicPart()}
     </div>
   );
 }

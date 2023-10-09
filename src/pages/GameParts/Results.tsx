@@ -6,7 +6,11 @@ import { Room } from "../../../types";
 import OddButton from "../../components/button";
 import { useEffect, useState } from "react";
 
-export default function Results() {
+interface Props {
+  viewing?: boolean;
+}
+
+export default function Results({ viewing }: Props) {
   const { localState } = useLocalState();
   const setDone = useMutation(api.room.setDone);
   const room = useQuery(api.room.getRoom, {
@@ -22,20 +26,20 @@ export default function Results() {
 
   // When anyone sees everyone answer, they'll try to make game progress (hehe)
   useEffect(() => {
-    if (room.done.length >= room.players.length) {
+    if (!viewing && room.done.length >= room.players.length) {
       tryStateChange({
         roomName: localState.roomName,
         fromState: "results",
         toState: "answering",
       });
     }
-  }, [room, localState, tryStateChange]);
+  }, [room, localState, tryStateChange, viewing]);
 
   return (
     <div className="flex items-center justify-center flex-col">
       {!onScoreboard && (
         <>
-          <Board editable={false} showAnswer={true} />
+          <Board editable={false} showAnswer={true} viewing={viewing} />
           <div className="mt-16">
             <OddButton
               className="p-2 text-2xl"
@@ -63,8 +67,10 @@ export default function Results() {
             </div>
           </div>
           <div className="mt-16">
-            {imDone && <div>Waiting for {stragglers.join(", ")}...</div>}
-            {!imDone && (
+            {(imDone || viewing) && (
+              <div>Waiting for {stragglers.join(", ")}...</div>
+            )}
+            {!(imDone || viewing) && (
               <OddButton
                 className="p-2 text-2xl"
                 onClick={() =>

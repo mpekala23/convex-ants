@@ -6,7 +6,11 @@ import useLocalState from "../../hooks/useLocalState";
 import Board from "../../components/board";
 import { useEffect } from "react";
 
-export default function Betting() {
+interface Props {
+  viewing?: boolean;
+}
+
+export default function Betting({ viewing }: Props) {
   const { localState } = useLocalState();
   const room = useQuery(api.room.getRoom, {
     roomName: localState.roomName,
@@ -20,21 +24,23 @@ export default function Betting() {
 
   // When anyone sees everyone answer, they'll try to make game progress (hehe)
   useEffect(() => {
-    if (room.done.length >= room.players.length) {
+    if (!viewing && room.done.length >= room.players.length) {
       tryStateChange({
         roomName: localState.roomName,
         fromState: "betting",
         toState: "results",
       });
     }
-  }, [room, localState, tryStateChange]);
+  }, [room, localState, tryStateChange, viewing]);
 
   return (
     <div className="flex items-center justify-center flex-col">
-      <Board editable={!imDone} showAnswer={false} />
+      <Board editable={!imDone} showAnswer={false} viewing={viewing} />
       <div className="mt-16">
-        {imDone && <div>Waiting for {stragglers.join(", ")}...</div>}
-        {!imDone && (
+        {(imDone || viewing) && (
+          <div>Waiting for {stragglers.join(", ")}...</div>
+        )}
+        {!(imDone || viewing) && (
           <OddButton
             className="p-2 text-2xl"
             onClick={() =>

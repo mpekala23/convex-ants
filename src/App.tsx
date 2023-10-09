@@ -8,6 +8,7 @@ import { LocalState } from "../types";
 import JoinPage from "./pages/Join";
 import LobbyPage from "./pages/Lobby";
 import GamePage from "./pages/Game";
+import ViewPage from "./pages/View";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
   {
     path: "/game",
     element: <GamePage />,
+  },
+  {
+    path: "/view",
+    element: <ViewPage />,
   },
 ]);
 
