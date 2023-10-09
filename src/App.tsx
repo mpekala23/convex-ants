@@ -38,7 +38,7 @@ function App() {
 
   return (
     <LocalContext.Provider value={[localState, setLocalState]}>
-      <div className="w-screen h-screen bg-slate-900 flex items-center justify-center p-32 text-slate-50 font-courier">
+      <div className="w-screen min-h-screen md:h-screen bg-slate-900 flex items-center justify-center pb-16 md:pb-0 md:px-32 text-slate-50 font-courier">
         <RouterProvider router={router} />
         <Toaster />
       </div>

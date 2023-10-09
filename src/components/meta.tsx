@@ -37,7 +37,7 @@ export default function Meta() {
   }
 
   return (
-    <div className="absolute left-0 top-0 border-r border-b p-4 bg-slate-700 border-slate-100">
+    <div className="relative mb-8 md:mb-0 md:absolute md:left-0 md:top-0 border-r border-b p-4 bg-slate-700 border-slate-100">
       <p>
         Room: <span className="font-bold">{localState.roomName}</span>
       </p>

@@ -129,19 +129,27 @@ export default function Board({ editable, showAnswer, viewing }: Props) {
   };
 
   return (
-    <div className="flex items-center justify-center flex-col">
-      <p className="text-center font-bold text-3xl mb-8">
+    <div className="flex w-full items-center justify-center flex-col">
+      <p className="text-center w-3/4 font-bold text-3xl mb-8">
         {room.question.text}
       </p>
-      <div className="flex w-full items-center justify-center">
-        {betGroups.map((group) => {
+      <div className="flex flex-col md:flex-row w-full items-center overflow-x-auto">
+        {betGroups.map((group, index) => {
           const myBet = group.betters[localState.username];
           const iHaveBet = myBet !== null && myBet !== undefined;
           const bgColor =
             group.isCorrect && showAnswer ? "bg-green-400" : "bg-slate-100";
 
           return (
-            <div className="flex flex-col mx-8 items-center w-64">
+            <div
+              className={`flex flex-col pb-8 md:pb-0 mx-8 items-center w-64 ${
+                index == 0
+                  ? "md:ml-auto"
+                  : index == betGroups.length - 1
+                  ? "md:mr-auto"
+                  : ""
+              }`}
+            >
               <div
                 className={`flex flex-col justify-center items-center py-8 mb-8  w-full h-64  text-slate-950 ${
                   editable && !viewing ? "clickable" : ""
